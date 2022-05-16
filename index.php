@@ -4,72 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lc6KPUfAAAAAOAVEXUaiKQKGLoJD791aEFvpxQG"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End discrimination against autism</title>
-    <link rel="shortcut icon" href="End_discrimination.png">
+    <title>Document</title>
 </head>
 
 <body>
-    <?php
-    // Checks if form has been submitted
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        function post_captcha($user_response)
-        {
-            $fields_string = '';
-            $fields = array(
-                'secret' => '6Lc6KPUfAAAAAKRiMWbxzwZaiyN0BEpOggs0CNZg',
-                'response' => $user_response
-            );
-            foreach ($fields as $key => $value)
-                $fields_string .= $key . '=' . $value . '&';
-            $fields_string = rtrim($fields_string, '&');
-
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
-            curl_setopt($ch, CURLOPT_POST, count($fields));
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, True);
-
-            $result = curl_exec($ch);
-            curl_close($ch);
-
-            return json_decode($result, true);
-        }
-
-        // Call the function post_captcha
-        $res = post_captcha($_POST['g-recaptcha-response']);
-
-        if (!$res['success']) {
-            // What happens when the CAPTCHA wasn't checked
-            echo '<p>Please go back and make sure you check the security CAPTCHA box.</p><br>';
-        } else {
-            // If CAPTCHA is successfully completed...
-
-            // Paste mail function or whatever else you want to happen here!
-            echo '<br><p>CAPTCHA was completed successfully!</p><br>';
-        }
-    } else { ?>
-
-        <!-- FORM GOES HERE -->
-
-
-
-
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-
-
-        <form action="?" method="POST">
-            <div class="g-recaptcha" data-sitekey="6Lc6KPUfAAAAAOAVEXUaiKQKGLoJD791aEFvpxQG"></div>
-            <br />
-            <input type="submit" value="Submit">
-        </form>
-
-
-
-
-    <?php } ?>
-
+    <form method="post" action="">
+        <input type="hidden" name="token" id="token">
+        <button type="submit" name="submit">Send</button>
+    </form>
+    <script>
+        grecaptcha.ready(function() {
+            grecaptcha.execute('6Lc6KPUfAAAAAOAVEXUaiKQKGLoJD791aEFvpxQG', {
+                action: 'submit'
+            }).then(function(token) {
+                document.getElementById("token").value = token;
+            });
+        });
+    </script>
 </body>
 
 </html>
+<?php
+
+if (isset($_POST['submit'])) {
+    $request = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=6Lc6KPUfAAAAAKRiMWbxzwZaiyN0BEpOggs0CNZg&response=" . $_POST['token']);
+    $request = json_decode($request);
+    if ($request->success == true) {
+        if ($request->score >= 0.6) {
+            // Do something
+        } else {
+            echo "error";
+        }
+    }
+}
+?>
